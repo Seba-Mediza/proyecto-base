@@ -40,6 +40,7 @@ public class InventarioCupon {
 
     //chequear que respete nombre con el DER
     @Column(nullable = false)
+     @JoinColumn(name = "puntos_gastados")
     private Integer puntosGastados;
 
     @Column(nullable = false)

@@ -3,7 +3,7 @@ package com.aydsii.demo.service;
 import com.aydsii.demo.dto.CanjeRequest;
 import com.aydsii.demo.dto.CanjeResponse;
 import com.aydsii.demo.entity.Cupon;
-import com.aydsii.demo.entity.EstadoCupon;
+import com.aydsii.demo.enums.EstadoCupon;
 import com.aydsii.demo.entity.InventarioCupon;
 import com.aydsii.demo.entity.Persona;
 import com.aydsii.demo.exception.BusinessException;
@@ -25,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CanjeService implements ICanjeService {
 
-    // final: sin esto @RequiredArgsConstructor no los inyecta y quedan en null
+    
     private final ICuponRepository cuponRepository;
     private final IPersonaRepository personaRepository;
     private final ICanjeRepository canjeRepository;
@@ -54,7 +54,7 @@ public class CanjeService implements ICanjeService {
         persona.setPuntos(persona.getPuntos() - puntosTotales);
         personaRepository.save(persona); 
 
-        // Una fila de inventario por cada cupón canjeado
+        // Una fila de inventario por cada cupon canjeado
         LocalDate hoy = LocalDate.now();
         List<InventarioCupon> cuponesCanjeados = new ArrayList<>();
         for (int i = 0; i < cantidad; i++) {

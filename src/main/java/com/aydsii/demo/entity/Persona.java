@@ -33,6 +33,8 @@ public class Persona {
     @Column(name = "nombre_usuario")
     private String nombreUsuario;
 
+    private Integer puntos;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;

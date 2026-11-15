@@ -50,7 +50,7 @@ public class CanjeController {
                     content = @Content(mediaType = "application/json",
                         schema = @Schema(implementation = APIResponse.class),
                         examples = @ExampleObject(name = "Persona inexistente", value = SwaggerExamples.ERROR_PERSONA)))
-            // TODO: agregar en SwaggerExamples ejemplos para cupón inexistente, cupón inactivo y puntos insuficientes
+            
     })
     @PostMapping
     public ResponseEntity<APIResponse<CanjeResponse>> canjearPuntosPorCupones(@Valid @RequestBody CanjeRequest request) {
