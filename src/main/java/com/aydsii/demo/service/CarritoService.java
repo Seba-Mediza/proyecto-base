@@ -1,8 +1,7 @@
 package com.aydsii.demo.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.aydsii.demo.exception.ClienteNoEncontradoException;
@@ -10,8 +9,6 @@ import com.aydsii.demo.exception.ProductoNoEncontradoException;
 import com.aydsii.demo.exception.ProductoSinStockException;
 import com.aydsii.demo.exception.StockInsuficienteException;
 import com.aydsii.demo.model.dto.AgregarCarritoRequestDTO;
-import com.aydsii.demo.model.dto.CarritoRespuestaDTO;
-import com.aydsii.demo.model.dto.ItemCarritoDTO;
 import com.aydsii.demo.model.tablas.Cliente;
 import com.aydsii.demo.model.tablas.ItemCarrito;
 import com.aydsii.demo.model.tablas.Producto;
@@ -21,6 +18,10 @@ import com.aydsii.demo.repository.ProductoRepository;
 
 @Service
 public class CarritoService {
+
+    // Simple Logging Facade: el código usa solo las interfaces de SLF4J.
+    // Quien escribe los logs es Log4j2, configurado en log4j2-spring.xml.
+    private static final Logger log = LoggerFactory.getLogger(CarritoService.class);
 
     private final ItemCarritoRepository carritoRepository;
     private final ClienteRepository clienteRepository;
@@ -33,19 +34,29 @@ public class CarritoService {
         this.productoRepository = productoRepository;
     }
 
-    public CarritoRespuestaDTO agregarProducto(AgregarCarritoRequestDTO producto) {
+    public double agregarProducto(AgregarCarritoRequestDTO producto) {
+
+        log.info("Agregar al carrito: cliente={}, producto={}, cantidad={}",
+                producto.clienteDni(), producto.productoCodigo(), producto.cantidad());
 
         Cliente cliente = clienteRepository.findById(producto.clienteDni())
-                .orElseThrow(() -> new ClienteNoEncontradoException(producto.clienteDni()));
+                .orElseThrow(() -> {
+                    log.warn("Cliente inexistente: dni={}", producto.clienteDni());
+                    return new ClienteNoEncontradoException(producto.clienteDni());
+                });
 
         Producto productoCatalogo = productoRepository.findById(producto.productoCodigo())
-                .orElseThrow(() -> new ProductoNoEncontradoException(
-                        "No se encontró el producto con código " + producto.productoCodigo() + "."));
+                .orElseThrow(() -> {
+                    log.warn("Producto inexistente: codigo={}", producto.productoCodigo());
+                    return new ProductoNoEncontradoException(
+                            "No se encontró el producto con código " + producto.productoCodigo() + ".");
+                });
 
         int disponible = productoCatalogo.getStockDisponible();
 
         if (disponible <= 0) {
-            throw new ProductoSinStockException(productoCatalogo.getNombre());
+            log.warn("Producto sin stock: codigo={}", producto.productoCodigo());
+            throw new ProductoSinStockException();
         }
 
         // si el producto ya está en el carrito, se suma a lo que había
@@ -57,9 +68,12 @@ public class CarritoService {
             enCarrito = item.getCantidad();
         }
 
+        log.debug("Stock disponible={}, ya en el carrito={}", disponible, enCarrito);
+
         if (enCarrito + producto.cantidad() > disponible) {
-            throw new StockInsuficienteException(productoCatalogo.getNombre(), disponible, enCarrito,
-                    producto.cantidad());
+            log.warn("Stock insuficiente: producto={}, disponible={}, enCarrito={}, pedida={}",
+                    producto.productoCodigo(), disponible, enCarrito, producto.cantidad());
+            throw new StockInsuficienteException(disponible, enCarrito, producto.cantidad());
         }
 
         if (item == null) {
@@ -71,22 +85,19 @@ public class CarritoService {
         item.setCantidad(enCarrito + producto.cantidad());
         carritoRepository.save(item);
 
-        return armarCarrito(producto.clienteDni());
+        double total = calcularTotal(producto.clienteDni());
+        log.info("Producto agregado al carrito: cliente={}, producto={}, total={}",
+                producto.clienteDni(), producto.productoCodigo(), total);
+
+        return total;
     }
 
-    // arma la respuesta con todas las líneas del carrito y el total.
-    private CarritoRespuestaDTO armarCarrito(String dni) {
-        List<ItemCarritoDTO> items = new ArrayList<>();
+    // suma los subtotales (precio del pack x cantidad) de todo el carrito del cliente
+    private double calcularTotal(String dni) {
         double total = 0;
-
         for (ItemCarrito i : carritoRepository.findByClienteDni(dni)) {
-            Producto p = i.getProducto();
-            double subtotal = p.getPrecioPack() * i.getCantidad();
-            total += subtotal;
-            items.add(new ItemCarritoDTO(p.getCodigo(), p.getNombre(), p.getDescripcion(),
-                    i.getCantidad(), p.getPrecioPack(), subtotal));
+            total += i.getProducto().getPrecioPack() * i.getCantidad();
         }
-
-        return new CarritoRespuestaDTO(dni, items, total);
+        return total;
     }
 }

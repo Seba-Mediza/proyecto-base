@@ -3,7 +3,12 @@ VALUES ('30111222', 'Ana', 'Pérez', 'ana@mail.com', '3794000000'),
         ('22333444', 'Juan', 'Pérez', 'juan@mail.com', '3794000000');
 
 INSERT IGNORE INTO productos (codigo, nombre, descripcion, categoria, precio_pack, unidades_pack, stock_fisico, stock_reservado, stock_minimo, estado)
-VALUES (1, 'Vaso PET 250cc', 'Pack 10 un.', 'Vasos', 4500, 10, 100, 0, 20, 'DISPONIBLE');
+VALUES (1, 'Vaso PET 250cc', 'Pack 10 un.', 'Vasos', 4500, 10, 100, 0, 20, 'DISPONIBLE'),
+       (2, 'Vaso PET 500cc', 'Pack 10 un.', 'Vasos', 6800, 10, 80, 0, 20, 'DISPONIBLE'),
+       (3, 'Bandeja PET 500g', 'Pack 8 un.', 'Bandejas', 5200, 8, 25, 5, 20, 'STOCK_BAJO'),
+       (4, 'Clamshell PET 750cc', 'Pack 8 un.', 'Contenedores', 7400, 8, 0, 0, 10, 'SIN_STOCK'),
+       (5, 'Clamshell PET 1000cc', 'Pack 8 un.', 'Contenedores', 8900, 8, 30, 30, 10, 'SIN_STOCK'),
+       (6, 'Tapa PET para vaso', 'Pack 20 un.', 'Otros', 3200, 20, 200, 0, 40, 'DISPONIBLE');
 
 INSERT IGNORE INTO pedidos (id, fecha, estado, modo_entrega, direccion_entrega, valor_total, cliente_dni)
 VALUES (1, NOW(), 'PAGADO', 'RETIRO_LOCAL', NULL, 9000, '30111222'),
